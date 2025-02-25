@@ -77,7 +77,7 @@ def addZipEntry(zos, name, data):
 # end addZipEntry
 
 # Get the response body as a ZIP file containing the message tracking data
-def getResponseBody(whereClause, addExportInfo):
+def getResponseBody(whereClause, prettyPrint, addExportInfo):
     service.log(u"{} BEGIN getResponseBody".format(logPrefix))
 
     mxs = MXServer.getMXServer()
@@ -111,19 +111,23 @@ def getResponseBody(whereClause, addExportInfo):
             byteData = MessageUtil.uncompressMessage(msgData, length)
 
             fileName = "{}_{}_{}".format(extSys, iface, meaMsgId)
-            fileExt = "txt"
-            # Always attempt to pretty print the XML/JSON data
-            try:
-                if mimeType == "application/json":
-                    fileExt = "json"
-                    byteData = MicUtil.prettyPrintJSON(byteData).encode('utf-8')
-                elif mimeType == "application/xml":
-                    fileExt = "xml"
-                    doc = XMLUtils.convertBytesToDocument(byteData)
-                    byteData = XMLUtils.convertDocumentToBytes(doc)
-            except Exception as e:
-                service.log_warn(u"{} Failed to pretty print {} ({}) -> {}".format(
-                    logPrefix, msgId, mimeType, e))
+            fileExt = { 
+                "application/json": "json",
+                "application/xml": "xml",
+            }.get(mimeType, "txt")
+            
+            # Attempt to pretty print the data if it is JSON or XML
+            # and prettyPrint is enabled
+            if prettyPrint:
+                try:
+                    if mimeType == "application/json":
+                        byteData = MicUtil.prettyPrintJSON(byteData).encode('utf-8')
+                    elif mimeType == "application/xml":
+                        doc = XMLUtils.convertBytesToDocument(byteData)
+                        byteData = XMLUtils.convertDocumentToBytes(doc)
+                except Exception as e:
+                    service.log_warn(u"{} Failed to pretty print {} ({}) -> {}".format(
+                        logPrefix, msgId, mimeType, e))
 
             addZipEntry(zos, "{}.{}".format(fileName, fileExt), byteData)
 
@@ -160,13 +164,14 @@ msgId = request.getQueryParam("msgId")
 sfData = request.getQueryParam("sfData")
 daysAge = int(request.getQueryParam("daysAge")) if request.getQueryParam("daysAge") else None
 query = request.getQueryParam("query")
+prettyPrint = request.getQueryParam("prettyPrint") not in ["false", "0"]
 addExportInfo = request.getQueryParam("addExpInfo") not in ["false", "0"]
 service.log(u"""{} PARAMS -> [extSys={}] [iface={}] [msgId={}]\
      [sfData={}] [daysAge={}] [query={}] [addExpInfo={}]
     """.format(logPrefix, extSys, iface, msgId, sfData, daysAge, query, addExportInfo))
 
 whereClause = getWhereClause(extSys, iface, msgId, sfData, daysAge, query)
-responseBody = getResponseBody(whereClause, addExportInfo)
+responseBody = getResponseBody(whereClause, prettyPrint, addExportInfo)
 service.log(u"{} END".format(logPrefix))
 
 scriptConfig="""{

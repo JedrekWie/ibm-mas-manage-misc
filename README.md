@@ -14,6 +14,7 @@ The [EXPORTMSGTRACKING.py](./autoscript/EXPORTMSGTRACKING.py) script exports *Me
 * `sfData` - search field data (`MAXINTMSGTRK.SEARCHFIELDDATA`) of the message to export (supports exact or SQL wildcard matching)
 * `daysAge` - number of days back in time (since now) when the message to be exported was received/sent (`MAXINTMSGTRK.INITIALDATETIME`)
 * `query` - any additional SQL where clause for the `MAXINTMSGTRK` table to filter messages for export
+* `prettyPrint` - when set to `1` or `true` then JSON and/or XML messages are pretty printed before exporting
 * `addExpInfo` - when set to `1` or `true` causes an `export-info.txt` file with details about the request input and output to be included in the result archive
 
 **NOTE:** All parameters restricting `MAXINTMSGTRK` data can be used at the same time. In such case resulting selection where clause will contain appropriate database table column criteria joined with **AND** logical operator.
