@@ -77,7 +77,7 @@ def addZipEntry(zos, name, data):
 # end addZipEntry
 
 # Get the response body as a ZIP file containing the message tracking data
-def getResponseBody(whereClause, prettyPrint, addExportInfo):
+def getResponseBody(whereClause, limit, prettyPrint, addExportInfo):
     service.log(u"{} BEGIN getResponseBody".format(logPrefix))
 
     mxs = MXServer.getMXServer()
@@ -93,7 +93,10 @@ def getResponseBody(whereClause, prettyPrint, addExportInfo):
         startTime = time.time()
         msgTrkSet.setWhere(whereClause)
         count = msgTrkSet.count()
-        service.log(u"{} COUNT -> {}".format(logPrefix, count))
+        service.log(u"{} COUNT/LIMIT -> {}/{}".format(logPrefix, count, limit))
+
+        if count > limit:
+            raise Exception("Too many records to export ({} > {})".format(count, limit))
 
         msgTrk = msgTrkSet.moveFirst()
         i = 1
@@ -166,12 +169,13 @@ daysAge = int(request.getQueryParam("daysAge")) if request.getQueryParam("daysAg
 query = request.getQueryParam("query")
 prettyPrint = request.getQueryParam("prettyPrint") not in ["false", "0"]
 addExportInfo = request.getQueryParam("addExpInfo") not in ["false", "0"]
+limit = int(request.getQueryParam("limit") or "1000")
 service.log(u"""{} PARAMS -> [extSys={}] [iface={}] [msgId={}]\
      [sfData={}] [daysAge={}] [query={}] [addExpInfo={}]
     """.format(logPrefix, extSys, iface, msgId, sfData, daysAge, query, addExportInfo))
 
 whereClause = getWhereClause(extSys, iface, msgId, sfData, daysAge, query)
-responseBody = getResponseBody(whereClause, prettyPrint, addExportInfo)
+responseBody = getResponseBody(whereClause, limit, prettyPrint, addExportInfo)
 service.log(u"{} END".format(logPrefix))
 
 scriptConfig="""{
