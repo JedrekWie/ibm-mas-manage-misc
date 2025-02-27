@@ -43,7 +43,7 @@ def getWhereClause(extSys, iface, msgId, sfData, daysAge, query):
         sqf.setDate(1, dateAge)
         cwc.addWhere(sqf.format())
     if query is not None:
-        cwc.addWhere(query)
+        cwc.addWhere(SqlFormat(ui, query).format())
 
     whereClause = cwc.getWhereClause()
     service.log(u"{} END getWhereClause -> {}".format(logPrefix, whereClause))

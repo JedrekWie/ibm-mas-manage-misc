@@ -14,6 +14,7 @@ The [EXPORTMSGTRACKING.py](./autoscript/EXPORTMSGTRACKING.py) script exports *Me
 * `sfData` - search field data (`MAXINTMSGTRK.SEARCHFIELDDATA`) of the message to export (supports exact or SQL wildcard matching)
 * `daysAge` - number of days back in time (since now) when the message to be exported was received/sent (`MAXINTMSGTRK.INITIALDATETIME`)
 * `query` - any additional SQL where clause for the `MAXINTMSGTRK` table to filter messages for export
+* `limit` - limit number of messages to be exported; if not specified then the default limit of `1000` messages is applied
 * `prettyPrint` - when set to `1` or `true` then JSON and/or XML messages are pretty printed before exporting
 * `addExpInfo` - when set to `1` or `true` causes an `export-info.txt` file with details about the request input and output to be included in the result archive
 
@@ -29,6 +30,16 @@ curl --location 'http://<host>:<port>/maxrest/api/script/EXPORTMSGTRACKING?msgId
 ```
 
 Exports tracked message data of message ID equal to `1496496.1736947899816251893`.
+
+**NOTE:** `addExpInfo` request parameter has not been specified, the same result as if it has been specified and its value is true (`1` or `true`), therefore result ZIP archive contains `export-info.txt` of following example content:
+```
+Exported Message Tracking Data
+==============================
+Export Date and Time: 2025-02-25 12:35:38
+Where clause: (msgdata is not null) AND (meamsgid like '1496496.1736947899816251893')
+Total Records: 1
+Execution Time: 1 s
+```
 
 **Example #2**
 
